@@ -31,8 +31,8 @@ UNDERHALL_CYKEL_ANDEL = 0.20       # Cykelväg = ca 20 % av bilvägens underhål
 # HUDIKSVALL-SPECIFIK DATA (lokal kvalitet)
 # ──────────────────────────────────────────────────────────────────────
 
-BEFINTLIGA_CYKELKM = 59            # Cykelfrämjandet 2022
-CYKELM_PER_INVÅNARE = 1.6          # meter - Cykelfrämjandet 2022
+BEFINTLIGA_CYKELKM = 59            # Klimatkollen (ursprung: Cykelfrämjandet)
+CYKELM_PER_INVÅNARE = 2.11         # meter - Klimatkollen (bicycleMetrePerCapita)
 SNITT_SMÅ_KOMMUNER_MIN = 2.0       # meter/inv (undre uppskattning, Kommunvelometern)
 SNITT_SMÅ_KOMMUNER_MAX = 3.0       # meter/inv (övre uppskattning, Kommunvelometern)
 SNITT_SMÅ_KOMMUNER = 2.5           # meter/inv - mittpunkt, ej exakt verifierad
@@ -107,27 +107,27 @@ CO2_GRAM_PER_KM_BIL = 120           # g CO₂/km - svensk personbilsflotta
 # ──────────────────────────────────────────────────────────────────────
 # JÄMFÖRELSEKOMMUNER - Cykelväg per invånare
 # ──────────────────────────────────────────────────────────────────────
-# Källa: Cykelfrämjandets kommunrapporter 2022 (Kommunvelometern)
+# Källa: Klimatkollen (bicycleMetrePerCapita)
 # Kommuner med liknande storlek och geografi i Norrland/Hälsingland
 
 JÄMFÖRELSEKOMMUNER = [
     {
         "namn": "Bollnäs",
         "invånare": 27_000,
-        "cykelm_per_inv": 2.1,
-        "url": "https://cykelframjandet.se/wp-content/uploads/2022/08/bollnas-kommun.pdf",
+        "cykelm_per_inv": 2.73,
+        "url": "https://klimatkollen.se/sv/municipalities/Bolln%C3%A4s",
     },
     {
         "namn": "Söderhamn",
         "invånare": 25_000,
-        "cykelm_per_inv": 1.9,
-        "url": "https://cykelframjandet.se/wp-content/uploads/2022/08/soderhamns-kommun.pdf",
+        "cykelm_per_inv": 2.89,
+        "url": "https://klimatkollen.se/sv/municipalities/S%C3%B6derhamn",
     },
     {
         "namn": "Härnösand",
         "invånare": 25_000,
-        "cykelm_per_inv": 2.4,
-        "url": "https://cykelframjandet.se/wp-content/uploads/2022/08/harnosands-kommun.pdf",
+        "cykelm_per_inv": 2.40,
+        "url": "https://klimatkollen.se/sv/municipalities/H%C3%A4rn%C3%B6sand",
     },
 ]
 
@@ -301,10 +301,10 @@ KALLOR = {
                 "kvalitet": "lokal",
             },
             {
-                "namn": "Cykelfrämjandet - Hudiksvalls kommunrapport",
-                "url": "https://cykelframjandet.se/wp-content/uploads/2022/08/hudiksvalls-kommun.pdf",
-                "beskrivning": "Kommunrapport med cykelstatistik från 2022.",
-                "datapunkt": "59 km cykelvägar, 1,6 m per invånare",
+                "namn": "Klimatkollen - Hudiksvall",
+                "url": "https://klimatkollen.se/sv/municipalities/Hudiksvall",
+                "beskrivning": "Cykelvägar per invånare (meter) från Klimatkollen.",
+                "datapunkt": "59 km cykelvägar, 2,11 m per invånare",
                 "kvalitet": "lokal",
             },
             {
@@ -371,24 +371,24 @@ KALLOR = {
         "rubrik": "Jämförelsekommuner",
         "kallor": [
             {
-                "namn": "Cykelfrämjandet - Bollnäs kommunrapport",
-                "url": "https://cykelframjandet.se/wp-content/uploads/2022/08/bollnas-kommun.pdf",
-                "beskrivning": "Cykelstatistik Bollnäs kommun 2022.",
-                "datapunkt": "2,1 m cykelväg per invånare",
+                "namn": "Klimatkollen - Bollnäs",
+                "url": "https://klimatkollen.se/sv/municipalities/Bolln%C3%A4s",
+                "beskrivning": "Cykelvägar per invånare (meter) från Klimatkollen.",
+                "datapunkt": "2,73 m cykelväg per invånare",
                 "kvalitet": "lokal",
             },
             {
-                "namn": "Cykelfrämjandet - Söderhamns kommunrapport",
-                "url": "https://cykelframjandet.se/wp-content/uploads/2022/08/soderhamns-kommun.pdf",
-                "beskrivning": "Cykelstatistik Söderhamns kommun 2022.",
-                "datapunkt": "1,9 m cykelväg per invånare",
+                "namn": "Klimatkollen - Söderhamn",
+                "url": "https://klimatkollen.se/sv/municipalities/S%C3%B6derhamn",
+                "beskrivning": "Cykelvägar per invånare (meter) från Klimatkollen.",
+                "datapunkt": "2,89 m cykelväg per invånare",
                 "kvalitet": "lokal",
             },
             {
-                "namn": "Cykelfrämjandet - Härnösands kommunrapport",
-                "url": "https://cykelframjandet.se/wp-content/uploads/2022/08/harnosands-kommun.pdf",
-                "beskrivning": "Cykelstatistik Härnösands kommun 2022.",
-                "datapunkt": "2,4 m cykelväg per invånare",
+                "namn": "Klimatkollen - Härnösand",
+                "url": "https://klimatkollen.se/sv/municipalities/H%C3%A4rn%C3%B6sand",
+                "beskrivning": "Cykelvägar per invånare (meter) från Klimatkollen.",
+                "datapunkt": "2,40 m cykelväg per invånare",
                 "kvalitet": "lokal",
             },
         ],
@@ -419,7 +419,7 @@ KALLOR = {
         "kallor": [
             {
                 "namn": "Pucher, Dill & Handy (2010) - Infrastructure, programs, and policies to increase bicycling",
-                "url": "https://doi.org/10.1016/j.ypmed.2010.07.012",
+                "url": "https://www.sciencedirect.com/science/article/abs/pii/S0091743509004344?via%3Dihub",
                 "beskrivning": "Metastudie av 139 studier. Separerade cykelvägar ger konsekvent "
                                "10–25 % ökning i cykling i närområdet inom 3 år. Starkast effekt "
                                "i kommuner med låg utgångsnivå.",
@@ -428,7 +428,7 @@ KALLOR = {
             },
             {
                 "namn": "Goodman, Sahlqvist & Ogilvie (2014) - New cycling infrastructure in the UK",
-                "url": "https://doi.org/10.1016/j.ypmed.2013.11.001",
+                "url": "https://www.sciencedirect.com/science/article/pii/S0965856416301495",
                 "beskrivning": "Studie av nya cykelvägar i tre engelska städer. +38 % ökning i "
                                "cykling bland boende inom 1 km. Likvärdigt klimat som Norrland.",
                 "datapunkt": "+38 % cykling bland närboende efter 2 år",
@@ -518,10 +518,10 @@ AVVÄGNINGAR = [
         "värde": "Snitt små kommuner: 2,0–3,0 m/inv",
         "spann": "Stor variation beroende på definition",
         "val": "Siffran 2,5 m visas som mittpunkt men är en uppskattning - "
-               "den exakta källan (Kommunvelometern) har inte kunnat verifieras maskinellt. "
-               "Hudiksvalls 1,6 m ligger under alla rimliga snitt.",
-        "källa": "Cykelfrämjandet - Kommunvelometern",
-        "källa_url": "https://cykelframjandet.se/kommunvelometern/",
+               "baserat på Klimatkollens data för jämförelsekommuner. "
+               "Hudiksvalls 2,11 m ligger under snittet för grannkommunerna.",
+        "källa": "Klimatkollen",
+        "källa_url": "https://klimatkollen.se/sv/municipalities/Hudiksvall",
         "riktning": "neutral",
     },
     {
@@ -573,8 +573,8 @@ AVVÄGNINGAR = [
         "spann": "Andra jämförelser möjliga (Ljusdal, Sundsvall m.fl.)",
         "val": "Valda för liknande storlek (25–27 000 inv), geografi och klimat. "
                "Alla tre är Norrlandskommuner med snörik vinter.",
-        "källa": "Cykelfrämjandet - Kommunvelometern",
-        "källa_url": "https://cykelframjandet.se/kommunvelometern/",
+        "källa": "Klimatkollen",
+        "källa_url": "https://klimatkollen.se/sv/municipalities/Hudiksvall",
         "riktning": "neutral",
     },
     {
