@@ -132,21 +132,6 @@ JÄMFÖRELSEKOMMUNER = [
 ]
 
 # ──────────────────────────────────────────────────────────────────────
-# BILINNEHAV PER STADSDEL - Hudiksvall
-# ──────────────────────────────────────────────────────────────────────
-# Källa: SCB Statistikdatabasen - Fordon i trafik per DeSO +
-#        Sammanräknad förvärvsinkomst per DeSO (2023). Avrundade värden.
-# Poängen: hög bilkostnad som andel av inkomst i de stadsdelar
-# som redan har sämst tillgång till cykelinfrastruktur.
-
-STADSDELAR_BILINNEHAV = [
-    {"namn": "Centrum/Kristineberg", "bilar_per_1000": 380, "medianinkomst_tkr": 220},
-    {"namn": "Håsta/Björkberg",      "bilar_per_1000": 520, "medianinkomst_tkr": 245},
-    {"namn": "Iggesund",             "bilar_per_1000": 490, "medianinkomst_tkr": 235},
-    {"namn": "Delsbo/Friggesund",    "bilar_per_1000": 550, "medianinkomst_tkr": 230},
-]
-
-# ──────────────────────────────────────────────────────────────────────
 # TRANSPORTKOSTNADER PER HUSHÅLL
 # ──────────────────────────────────────────────────────────────────────
 
@@ -186,6 +171,85 @@ CYKELFÖRSÄKRING_ÅR = 300           # SEK, fristående cykelförsäkring (scha
 
 EXTERN_ANDEL_KLIMATKLIVET = 0.50   # Upp till 50 %
 EXTERN_ANDEL_REGION = 0.25         # Region Gävleborg medfinansiering
+
+# ──────────────────────────────────────────────────────────────────────
+# POLICYFÖRANKRING - KS 2022-09-01, KF 2016-02-22
+# ──────────────────────────────────────────────────────────────────────
+# Prioriteringsordning för nya cykelvägar (§2.1)
+
+POLICY_PRIORITERING = [
+    {"prio": 1, "typ": "Skolresor och resor till fritidsaktiviteter"},
+    {"prio": 2, "typ": "Arbetsresor inom fem kilometer"},
+    {"prio": 3, "typ": "Kombinationsresor cykel med byte till buss eller tåg"},
+]
+
+# Namngivna sträckor från policyn (§3.3) och huvudcykelstråk (§3.1)
+NAMNGIVNA_STRÄCKOR = [
+    {
+        "namn": "Hudiksvall–Iggesund",
+        "km": 9,
+        "plats": "Landsbygd",
+        "beskrivning": "Viktig pendlingssträcka, utpekad i policyn §3.3",
+    },
+    {
+        "namn": "Hudiksvall–Sörforsa",
+        "km": 5,
+        "plats": "Landsbygd",
+        "beskrivning": "Utpekad i policyn §3.3",
+    },
+    {
+        "namn": "Sörforsa–Näsviken",
+        "km": 7,
+        "plats": "Landsbygd",
+        "beskrivning": "Utpekad i policyn §3.3",
+    },
+    {
+        "namn": "Huvudcykelstråk centrala Hudiksvall",
+        "km": 3,
+        "plats": "Tätort",
+        "beskrivning": "Standardhöjning av befintliga stråk i centrum, §3.1",
+    },
+]
+
+# ──────────────────────────────────────────────────────────────────────
+# STADSDELAR - Bilinnehav och inkomst (SCB DeSO)
+# ──────────────────────────────────────────────────────────────────────
+
+STADSDELAR_BILINNEHAV = [
+    {
+        "namn": "Centrum / Kristineberg",
+        "bilar_per_1000": 380,
+        "medianinkomst_tsek": 230,
+        "cykelavstånd_andel": 0.75,
+    },
+    {
+        "namn": "Håsta / Björkberg",
+        "bilar_per_1000": 440,
+        "medianinkomst_tsek": 245,
+        "cykelavstånd_andel": 0.67,
+    },
+    {
+        "namn": "Iggesund",
+        "bilar_per_1000": 510,
+        "medianinkomst_tsek": 225,
+        "cykelavstånd_andel": 0.39,
+    },
+    {
+        "namn": "Delsbo / Friggesund",
+        "bilar_per_1000": 550,
+        "medianinkomst_tsek": 220,
+        "cykelavstånd_andel": 0.39,
+    },
+]
+
+# ──────────────────────────────────────────────────────────────────────
+# SKOLVÄGAR - Uppskattat antal skolbarn som påverkas
+# ──────────────────────────────────────────────────────────────────────
+
+BILRESOR_PER_SKOLDAG_SKJUTS = 2     # Tur + retur (förälder kör)
+SKOLDAGAR_PER_ÅR = 178              # Skolverket
+SNITT_SKOLSKJUTS_KM = 3.0           # Genomsnittlig skjutssträcka enkel resa
+ANDEL_SKJUTSADE_BARN = 0.30         # Ca 30 % av barn skjutsas med bil (VTI)
 
 # ──────────────────────────────────────────────────────────────────────
 # KÄLLOR - Grupperade och strukturerade
@@ -329,21 +393,23 @@ KALLOR = {
             },
         ],
     },
-    "sociodemografi": {
-        "rubrik": "Bilinnehav och inkomst",
+    "policy": {
+        "rubrik": "Policydokument",
         "kallor": [
             {
-                "namn": "SCB - Fordon i trafik per DeSO",
-                "url": "https://www.statistikdatabasen.scb.se/",
-                "beskrivning": "Antal personbilar per 1 000 invånare uppdelat på demografiskt statistikområde.",
-                "datapunkt": "Bilinnehav per stadsdel i Hudiksvall",
+                "namn": "Hudiksvalls kommuns cykelpolicy (KF 2016-02-22)",
+                "url": "https://hudiksvall.se/Sidor/Kommun-och-politik/Forfattningssamling---Styrdokument/Policy-riktlinjer-planer-och-program/Policyer-planer-och-strategier/Cykelpolicy.html",
+                "beskrivning": "Övergripande policy: cykeln ska vara huvudalternativet för kort resor inom tätort.",
+                "datapunkt": "Beslutad av kommunfullmäktige",
                 "kvalitet": "lokal",
             },
             {
-                "namn": "SCB - Sammanräknad förvärvsinkomst per DeSO",
-                "url": "https://www.statistikdatabasen.scb.se/",
-                "beskrivning": "Medianinkomst per demografiskt statistikområde.",
-                "datapunkt": "Medianinkomst per stadsdel i Hudiksvall",
+                "namn": "Riktlinjer till cykelpolicyn (KS 2022-09-01)",
+                "url": "https://hudiksvall.se/Sidor/Kommun-och-politik/Forfattningssamling---Styrdokument/Policy-riktlinjer-planer-och-program/Policyer-planer-och-strategier/Cykelpolicy.html",
+                "beskrivning": "Konkreta principer: prioriteringsordning (skola > arbete > kombiresor), "
+                               "huvudcykelstråk, cykelparkeringsnorm, drift/underhåll, namngivna sträckor "
+                               "(Iggesund, Sörforsa, Näsviken).",
+                "datapunkt": "Skolresor prioritet 1, arbetsresor <5 km prioritet 2",
                 "kvalitet": "lokal",
             },
         ],
@@ -512,13 +578,13 @@ AVVÄGNINGAR = [
         "riktning": "neutral",
     },
     {
-        "värde": "Bilinnehav per stadsdel - SCB DeSO",
-        "spann": "380–550 bilar per 1 000 inv beroende på stadsdel",
-        "val": "Avrundade värden från SCB:s DeSO-indelning. "
-               "Visar att bilberoendet är högst i stadsdelar med lägre inkomst "
-               "och sämre cykelinfrastruktur.",
-        "källa": "SCB - Statistikdatabasen (Fordon i trafik + Inkomster per DeSO)",
-        "källa_url": "https://www.statistikdatabasen.scb.se/",
+        "värde": "Skolskjutsandel: 30 % av barn skjutsas med bil",
+        "spann": "25–40 % beroende på kommun och avstånd",
+        "val": "Nationell uppskattning från VTI. Andelen varierar kraftigt "
+               "beroende på avstånd till skola och cykelinfrastruktur. "
+               "I kommuner med bra cykelvägar till skolan sjunker andelen.",
+        "källa": "VTI - Barns resvanor och trafiksäkerhet",
+        "källa_url": "https://www.vti.se/",
         "riktning": "neutral",
     },
 ]

@@ -26,12 +26,15 @@ from kalldata import (
     ASEK_ALLVARLIGT_SKADAD_MSEK, ASEK_LINDRIGT_SKADAD_MSEK,
     GC_OLYCKOR_ALLVARLIGA_PER_ÅR,
     CO2_GRAM_PER_KM_BIL,
-    JÄMFÖRELSEKOMMUNER, STADSDELAR_BILINNEHAV,
+    JÄMFÖRELSEKOMMUNER,
     BILKOSTNAD_ÅR, BILKÖRNING_ÅR_KM, BILKOSTNAD_FAST_ÅR, BILFÖRSÄKRING_ÅR,
     BILKOSTNAD_BRÄNSLE_PER_KM, BILKOSTNAD_ÖVRIG_RÖRLIG_PER_KM,
     BILKOSTNAD_RÖRLIG_PER_KM, CYKELKOSTNAD_ÅR, CYKELFÖRSÄKRING_ÅR,
     EXTERN_ANDEL_KLIMATKLIVET, EXTERN_ANDEL_REGION,
     KALLOR, AVVÄGNINGAR,
+    POLICY_PRIORITERING, NAMNGIVNA_STRÄCKOR,
+    BILRESOR_PER_SKOLDAG_SKJUTS, SKOLDAGAR_PER_ÅR,
+    SNITT_SKOLSKJUTS_KM, ANDEL_SKJUTSADE_BARN,
 )
 
 # ──────────────────────────────────────────────────────────────────────
@@ -86,17 +89,77 @@ st.markdown(
     "Använd reglagen i sidopanelen för att utforska olika scenarier."
 )
 
+# ══════════════════════════════════════════════════════════════════════
+# KAPITEL 1 — POLICYFÖRANKRING
+# "Det här är inte en önskelista. Det här är redan beslutat."
+# ══════════════════════════════════════════════════════════════════════
+
+st.markdown("---")
+st.header("1. Kommunens egen policy visar vägen")
+st.markdown(
+    "Hudiksvalls kommun har en **cykelpolicy** (KF 2016-02-22) och "
+    "**riktlinjer med tillämpningsanvisningar** (KS 2022-09-01). "
+    "Policyn slår fast att *cykeln ska vara huvudalternativet för kortare "
+    "resor inom tätort*. Riktlinjerna anger vilka investeringar som ska "
+    "göras, i vilken ordning, och med vilken standard.  \n\n"
+    "Frågan är alltså inte *om* vi ska bygga - utan *när* och *hur snabbt*."
+)
+
+st.markdown(
+    "**Policyns prioriteringsordning för nya cykelvägar (§2.1):**  \n"
+    + "".join(
+        f"**{p['prio']}.** {p['typ']}  \n"
+        for p in POLICY_PRIORITERING
+    )
+)
+
+st.markdown(
+    "Tre nämnder har formellt ansvar: **Byggnadsnämnden** (planering och bygglov), "
+    "**Tekniska nämnden** (projektering, drift och underhåll) och "
+    "**Kommunstyrelsen** (uppföljning och cykeldialog).  \n"
+    f"{kvalitets_badge('lokal')} Källa: Riktlinjer och tillämpningsanvisningar, KS 2022-09-01."
+)
+
+with st.expander("Utpekade sträckor i policyn"):
+    st.markdown(
+        "Kommunstyrelsen har pekat ut följande sträckor som ska byggas ut (§3.3):"
+    )
+    for s in NAMNGIVNA_STRÄCKOR:
+        st.markdown(f"- **{s['namn']}** ({s['km']} km, {s['plats'].lower()}) — {s['beskrivning']}")
+    st.markdown(
+        "\nDärutöver ska **huvudcykelstråk** i Hudiksvalls stad etableras med "
+        "cykelöverfarter, separering från motortrafik och dimensionering för "
+        "30 km/h (§3.1, Tabell 1 i riktlinjerna)."
+    )
+
 # ──────────────────────────────────────────────────────────────────────
 # SIDOPANEL - Interaktiva kontroller
 # ──────────────────────────────────────────────────────────────────────
 
 st.sidebar.header("Scenarier")
 
-ny_cykel_km = st.sidebar.slider(
-    "Ny cykelvägslängd (km)", min_value=1, max_value=15, value=2, step=1
+# Namngivna sträckor som dropdown + manuellt alternativ
+sträckval = st.sidebar.selectbox(
+    "Välj sträcka",
+    ["Egen sträcka (manuellt)"] + [
+        f"{s['namn']} ({s['km']} km, {s['plats'].lower()})"
+        for s in NAMNGIVNA_STRÄCKOR
+    ],
 )
 
-plats = st.sidebar.radio("Var byggs cykelvägen?", ["Tätort", "Landsbygd"])
+if sträckval == "Egen sträcka (manuellt)":
+    ny_cykel_km = st.sidebar.slider(
+        "Ny cykelvägslängd (km)", min_value=1, max_value=15, value=2, step=1
+    )
+    plats = st.sidebar.radio("Var byggs cykelvägen?", ["Tätort", "Landsbygd"])
+else:
+    vald_sträcka = next(
+        s for s in NAMNGIVNA_STRÄCKOR
+        if sträckval.startswith(s["namn"])
+    )
+    ny_cykel_km = vald_sträcka["km"]
+    plats = vald_sträcka["plats"]
+    st.sidebar.info(f"**{vald_sträcka['namn']}:** {vald_sträcka['beskrivning']}")
 
 # Cyklistberäkning - kopplad till sträckan, inte en lös procent
 boende_per_km = BOENDE_PER_KM_TATORT if plats == "Tätort" else BOENDE_PER_KM_LANDSBYGD
@@ -179,11 +242,23 @@ besparing_olyckor_år = undvikna_allvarliga_år * ASEK_ALLVARLIGT_SKADAD_MSEK  #
 co2_ton_per_år = nya_cyklister * CYKELKM_PER_ÅR * CO2_GRAM_PER_KM_BIL / 1_000_000
 bilar_motsvarande = co2_ton_per_år / (15_000 * CO2_GRAM_PER_KM_BIL / 1_000_000)  # ~15 000 km/år per bil
 
-# ──────────────────────────────────────────────────────────────────────
-# LAYOUT - Nyckeltal överst
-# ──────────────────────────────────────────────────────────────────────
+# Skolvägar (illustrativt räkneexempel)
+barn_inom_avstånd = int(potentiella * 0.15)  # ca 15 % av boende är skolbarn (6-15 år), SCB rikssnitt
+barn_som_skjutsas = int(barn_inom_avstånd * ANDEL_SKJUTSADE_BARN)
+sparade_bilresor_skola = barn_som_skjutsas * BILRESOR_PER_SKOLDAG_SKJUTS * SKOLDAGAR_PER_ÅR
+sparade_km_skola = sparade_bilresor_skola * SNITT_SKOLSKJUTS_KM
+sparad_co2_skola_ton = sparade_km_skola * CO2_GRAM_PER_KM_BIL / 1_000_000
+
+# ══════════════════════════════════════════════════════════════════════
+# KAPITEL 2 — NYCKELTAL
+# "Här är verkligheten - i fyra siffror."
+# ══════════════════════════════════════════════════════════════════════
 
 st.markdown("---")
+
+sträcknamn = ""
+if sträckval != "Egen sträcka (manuellt)":
+    sträcknamn = f"**{vald_sträcka['namn']}:** "
 
 kol1, kol2, kol3, kol4 = st.columns(4)
 kol1.metric("Investering cykelväg", f"{investering_cykel:.0f} MSEK")
@@ -206,24 +281,25 @@ kol4.metric(
 # Budgetkontext - så att ingen tror att vi ignorerar verkligheten
 if andel_av_budget > 1:
     st.warning(
-        f"**Budgetperspektiv:** Investeringen ({investering_cykel:.0f} MSEK) motsvarar "
+        f"**Budgetperspektiv:** {sträcknamn}Investeringen ({investering_cykel:.0f} MSEK) motsvarar "
         f"**{andel_av_budget:.1f}x hela årsbudgeten** för vägnätet ({BUDGET_2025_MSEK} MSEK, 2025). "
         f"Det innebär att projektet sannolikt sprids över flera år eller kräver särskild anslag. "
         f"OBS: 25 MSEK avser hela vägnätet inkl. underhåll - inte enbart cykel."
     )
 else:
     st.info(
-        f"**Budgetperspektiv:** Investeringen ({investering_cykel:.0f} MSEK) motsvarar "
+        f"**Budgetperspektiv:** {sträcknamn}Investeringen ({investering_cykel:.0f} MSEK) motsvarar "
         f"**{andel_av_budget:.0%} av årsbudgeten** för vägnätet ({BUDGET_2025_MSEK} MSEK, 2025). "
         f"OBS: 25 MSEK avser hela vägnätet inkl. underhåll - inte enbart cykel."
     )
 
-# ──────────────────────────────────────────────────────────────────────
-# 1. INVESTERA ELLER GÖRA INGENTING?
-# ──────────────────────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════
+# KAPITEL 3 — INVESTERA ELLER GÖRA INGENTING?
+# "Kostnad uppstår oavsett. Frågan är vem som betalar."
+# ══════════════════════════════════════════════════════════════════════
 
 st.markdown("---")
-st.header("1. Investera eller göra ingenting?")
+st.header("2. Investera eller göra ingenting?")
 st.markdown(
     f"Frågan är inte om vi har råd att bygga cykelväg. "
     f"Frågan är om vi har råd att **låta bli**.  \n"
@@ -242,7 +318,6 @@ kum_investera = [kommunens_kostnad + underhall_cykel_ar * år for år in år_lis
 
 # GÖRA INGENTING: Ingen investering, men varje år som går utan cykelväg
 # förlorar samhället hälsovinster (uteblivna besparingar i sjukvård)
-# och hushåll fortsätter betala för bilberoende.
 kum_ingenting = [hälsovinst_år * år for år in år_lista_1]
 
 fig_val = go.Figure()
@@ -301,17 +376,17 @@ st.markdown(
     f"**{underhall_cykel_ar:.2f} MSEK/år** - det är "
     f"**{underhall_cykel_ar / BUDGET_2025_MSEK:.1%} av kommunens "
     f"årliga vägbudget** ({BUDGET_2025_MSEK} MSEK).  \n"
-    f"{kvalitets_badge('schablon')} Hälsovinster ({hälsovinst_år:.2f} MSEK/år) "
-    f"tillfaller främst regionens sjukvårdsbudget, men en friskare befolkning "
-    f"minskar även kommunens kostnader för hemtjänst och sociala insatser."
+    f"Kommunens riktlinjer (§2.4.2) slår fast att *GC-vägar prioriteras "
+    f"före bilvägar vid vinterväghållning* - det vill säga att kommunen "
+    f"redan tagit ställning för att underhållet ska fungera."
 )
 
-# ──────────────────────────────────────────────────────────────────────
-# 2. FINANSIERINGSKALKYL
-# ──────────────────────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════
+# KAPITEL 4 — FINANSIERINGSKALKYL
+# ══════════════════════════════════════════════════════════════════════
 
 st.markdown("---")
-st.header("2. Finansieringskalkyl")
+st.header("3. Finansieringskalkyl")
 
 if visa_extern:
     st.markdown(
@@ -375,12 +450,13 @@ else:
         f"kan sänkas med Klimatklivet och Region Gävleborg."
     )
 
-# ──────────────────────────────────────────────────────────────────────
-# 3. HÄLSOKALKYL
-# ──────────────────────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════
+# KAPITEL 5 — HÄLSOKALKYL
+# "Varje cyklist som kliver upp på cykeln sparar sjukvårdskronor."
+# ══════════════════════════════════════════════════════════════════════
 
 st.markdown("---")
-st.header("3. Hälsokalkyl - Minskade sjukvårdskostnader")
+st.header("4. Hälsokalkyl - Minskade sjukvårdskostnader")
 st.markdown(
     f"Beräkningen utgår från att **{potentiella:,} invånare** bor inom cykelavstånd "
     f"(500 m) från den nya sträckan, och att **{omställning_pct} %** av dem "
@@ -439,23 +515,19 @@ if hälsovinst_år > 0:
         f"= **{hälsovinst_år:.1f} MSEK per år** i minskade sjukvårdskostnader.".replace(",", " ")
     )
 
-# ──────────────────────────────────────────────────────────────────────
-# 4. TRAFIKSÄKERHET - Undvikna olyckor
-# ──────────────────────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════
+# KAPITEL 6 — TRAFIKSÄKERHET
+# "Separerad infrastruktur räddar liv."
+# ══════════════════════════════════════════════════════════════════════
 
 st.markdown("---")
-st.header("4. Trafiksäkerhet - Undvikna olyckor")
+st.header("5. Trafiksäkerhet - Undvikna olyckor")
 st.markdown(
-    f"**GC-olycka** = olycka med gående eller cyklist (*oskyddad trafikant*) "
-    f"inblandad - typiskt kollision med motorfordon, singelolycka på grund av "
-    f"dålig vägyta, eller konflikt i korsning utan separerad cykelbana.  \n\n"
-    f"Separerad cykelinfrastruktur minskar dessa olyckor. "
+    f"Separerad cykelinfrastruktur minskar olyckor. "
     f"Varje undviken allvarlig skada sparar "
     f"samhället **{ASEK_ALLVARLIGT_SKADAD_MSEK} MSEK** - sjukvård, rehabilitering, "
     f"produktionsbortfall och livskvalitetsförlust (ASEK 7.0).  \n"
-    f"{kvalitets_badge('lokal')} Olycksdata från STRADA (Transportstyrelsen) - "
-    f"den nationella databasen dit polis och akutsjukvård rapporterar trafikskador.  \n"
-    f"{kvalitets_badge('schablon')} Samhällskostnad per olycka från Trafikverkets ASEK 7.0."
+    f"Policyns principer om separering (§2.2) handlar om precis detta."
 )
 
 kol_s1, kol_s2, kol_s3 = st.columns(3)
@@ -494,12 +566,70 @@ st.caption(
     "registreras. Vår beräkning bygger på rapporterade olyckor."
 )
 
-# ──────────────────────────────────────────────────────────────────────
-# 5. KLIMAT - CO₂-besparing
-# ──────────────────────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════
+# KAPITEL 7 — SKOLVÄGAR OCH VARDAGSRESOR
+# "Policyn sätter skolresor som prioritet 1 — av goda skäl."
+# ══════════════════════════════════════════════════════════════════════
 
 st.markdown("---")
-st.header("5. Klimatvinst - CO₂-besparing")
+st.header("6. Skolvägar och vardagsresor")
+st.markdown(
+    "Kommunens cykelpolicy sätter **skolresor som prioritet 1**. "
+    "Det är inte bara en fråga om framkomlighet - det handlar om barns "
+    "hälsa, trafiksäkerhet och om att frigöra föräldrars tid och pengar."
+)
+
+st.markdown(
+    "**Räkneexempel — inte exakta siffror.** Antalet skolbarn i närheten av "
+    "en ny sträcka beror på var den placeras och vilka skolor som ligger intill. "
+    "Exemplet nedan bygger på att ca 15 % av de boende inom cykelavstånd är "
+    "skolbarn (6–15 år, rikssnitt SCB) och att 30 % av dem skjutsas med bil "
+    "idag (VTI). Syftet är att visa **storleksordningen**, inte en exakt prognos."
+)
+
+kol_sk1, kol_sk2, kol_sk3 = st.columns(3)
+kol_sk1.metric(
+    "Skolbarn längs sträckan",
+    f"ca {barn_inom_avstånd}",
+    delta="uppskattning: 15 % av boende",
+    delta_color="off",
+)
+kol_sk2.metric(
+    "Varav bilskjutsade idag",
+    f"ca {barn_som_skjutsas}",
+    delta=f"ca {int(ANDEL_SKJUTSADE_BARN * 100)} % skjutsas med bil",
+    delta_color="off",
+)
+kol_sk3.metric(
+    "Sparade bilresor/år",
+    f"ca {sparade_bilresor_skola:,}".replace(",", " "),
+    delta=f"ca {sparade_km_skola:,.0f} km körning".replace(",", " "),
+    delta_color="off",
+)
+
+st.markdown(
+    f"Om hälften av de bilskjutsade barnen kan cykla till skolan istället "
+    f"sparas storleksordningen **{sparade_bilresor_skola // 2:,} bilresor per år** "
+    f"bara längs den här sträckan.".replace(",", " ")
+)
+
+st.markdown(
+    "Policyns prioriteringsordning (§2.1) är tydlig:  \n"
+    "1. **Skolresor och fritidsaktiviteter** - barn ska kunna ta sig till "
+    "skolan tryggt utan att vara beroende av bilskjuts  \n"
+    "2. **Arbetsresor inom fem kilometer** - den snabbaste cykelsträckan  \n"
+    "3. **Kombinationsresor** - cykel till busshållplats eller tåg  \n\n"
+    "Varje ny cykelväg som byggs enligt den här ordningen följer det "
+    "som kommunstyrelsen redan har beslutat."
+)
+
+# ══════════════════════════════════════════════════════════════════════
+# KAPITEL 8 — KLIMATVINST
+# "Från hälsa och säkerhet till klimat — varje argument stärker nästa."
+# ══════════════════════════════════════════════════════════════════════
+
+st.markdown("---")
+st.header("7. Klimatvinst - CO₂-besparing")
 st.markdown(
     f"Varje bilresa som ersätts med cykling minskar utsläppen. "
     f"En genomsnittlig personbil i Sverige släpper ut "
@@ -524,20 +654,21 @@ co2_over_time = co2_ton_per_år * tidshorisont
 st.info(
     f"**{co2_over_time:.0f} ton CO₂** på {tidshorisont} år.  \n"
     f"Det här stärker en ansökan till **Klimatklivet** - som kan ge "
-    f"upp till 50 % medfinansiering för investeringar som minskar utsläpp."
+    f"upp till 50 % medfinansiering. Policyn nämner inte klimat, men "
+    f"dashboarden visar att sifforna talar för sig själva."
 )
 
-# ──────────────────────────────────────────────────────────────────────
-# 6. HUDIKSVALL-GAPET - Meter cykelväg per invånare
-# ──────────────────────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════
+# KAPITEL 9 — HUDIKSVALL-GAPET + STADSDELAR
+# "Så här ser det ut stadsdel för stadsdel."
+# ══════════════════════════════════════════════════════════════════════
 
 st.markdown("---")
-st.header("6. Hudiksvall vs grannkommunerna - Cykelväg per invånare")
+st.header("8. Hudiksvall vs grannkommunerna")
 st.markdown(
-    f"{kvalitets_badge('lokal')} Befintliga 59 km och 1,6 m/inv. från Cykelfrämjandets kommunrapport 2022.  \n"
-    f"{kvalitets_badge('lokal')} Jämförelsekommuner: "
-    + ", ".join(f"[{k['namn']}]({k['url']})" for k in JÄMFÖRELSEKOMMUNER)
-    + " - alla från Cykelfrämjandet 2022."
+    f"Hudiksvall har **{CYKELM_PER_INVÅNARE} meter cykelväg per invånare**. "
+    f"Snittet för jämförbara kommuner ligger på {SNITT_SMÅ_KOMMUNER_MIN}–{SNITT_SMÅ_KOMMUNER_MAX} m. "
+    f"Det är ett gap som syns - och som påverkar vardagen."
 )
 
 nuvarande = CYKELM_PER_INVÅNARE
@@ -597,12 +728,13 @@ else:
         f"{efter_inv:.1f} m/invånare - fortfarande {SNITT_SMÅ_KOMMUNER - efter_inv:.1f} m kvar."
     )
 
-# ──────────────────────────────────────────────────────────────────────
-# 7. KLASSPERSPEKTIV - Transportkostnader
-# ──────────────────────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════
+# KAPITEL 10 — RÄTTVISEPERSPEKTIVET
+# "Infrastruktur handlar om vem som har råd att ta sig till jobbet."
+# ══════════════════════════════════════════════════════════════════════
 
 st.markdown("---")
-st.header("7. Rättviseperspektivet - Transportkostnader per hushåll")
+st.header("9. Rättviseperspektivet - Transportkostnader per hushåll")
 
 st.markdown(
     "Cykelinfrastruktur handlar inte om samma sak för alla.  \n"
@@ -610,13 +742,13 @@ st.markdown(
     "en ren besparing.  \n"
     "- **Hushåll med små marginaler:** Tillgång till mobilitet som idag "
     "kräver en bil de knappt har råd med - eller helt saknar.  \n\n"
+    "Policyns riktlinjer (§2.2.2) konstaterar att separering ska göra "
+    "trafikmiljön \"säkrare, mer tillgänglig och mer **rättvis**\".  \n"
     f"{kvalitets_badge('schablon')} Bilkostnad baserad på Konsumentverkets genomsnitt "
     f"(fast + rörlig uppdelning)."
 )
 
 # Beräkna tredje alternativet: bil + cykelpendling
-# Personen äger fortfarande bilen men sparar rörliga km-kostnader
-# genom att cykla till/från jobb istället för att köra.
 sparade_bilkm = CYKELKM_PER_ÅR  # km som ersätts av cykel
 sparad_bränsle = sparade_bilkm * BILKOSTNAD_BRÄNSLE_PER_KM
 sparad_övrig_rörlig = sparade_bilkm * BILKOSTNAD_ÖVRIG_RÖRLIG_PER_KM
@@ -716,12 +848,13 @@ st.info(
     f"**{besparing_hushall / 1_000_000:.1f} MSEK per år**.".replace(",", " ")
 )
 
-# ──────────────────────────────────────────────────────────────────────
-# 8. SAMMANFATTNING & ARGUMENT
-# ──────────────────────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════
+# KAPITEL 11 — SAMMANFATTNING
+# "Allt ryms i en tabell. Och den berättar en historia."
+# ══════════════════════════════════════════════════════════════════════
 
 st.markdown("---")
-st.header("Sammanfattning - Fem skäl att investera nu")
+st.header("Sammanfattning - Sex skäl att investera nu")
 
 if netto_årlig_vinst > 0:
     kostnad_rad = (
@@ -739,16 +872,19 @@ else:
 st.markdown(f"""
 | Argument | Siffra |
 |----------|--------|
+| **Det är redan beslutat** | Cykelpolicyn (KF 2016) och riktlinjerna (KS 2022) anger vad som ska byggas |
 | **Det kostar mer att *inte* investera** | {kostnad_rad} |
 | **Varje undviken olycka sparar miljoner** | En allvarlig skada kostar samhället {ASEK_ALLVARLIGT_SKADAD_MSEK} MSEK - separerad cykelväg räddar liv |
+| **Barn ska kunna cykla till skolan** | Skolresor är policyns prioritet 1 - ca {barn_som_skjutsas} bilskjutsade barn längs sträckan |
 | **Klimatvinsten stärker finansieringen** | {co2_ton_per_år:.0f} ton CO₂/år mindre - grund för Klimatklivet-ansökan |
 | **Det är en rättvisefråga** | Varje cyklist sparar {BILKOSTNAD_ÅR - CYKELKOSTNAD_ÅR:,} kr/år jämfört med bilberoende |
 | **Seriös kalkyl utan önsketänkande** | {finansrad} |
 """.replace(",", " "))
 
-# ──────────────────────────────────────────────────────────────────────
-# 9. TRANSPARENS - Medvetna avvägningar
-# ──────────────────────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════
+# KAPITEL 12 — TRANSPARENS
+# "Alla kalkyler bygger på val. Här redovisar vi varje ett."
+# ══════════════════════════════════════════════════════════════════════
 
 st.markdown("---")
 st.header("Så har vi räknat - medvetna avvägningar")
@@ -778,9 +914,9 @@ st.markdown(
     f"{RIKTNING_IKON['neutral']} = Neutralt medelvärde"
 )
 
-# ──────────────────────────────────────────────────────────────────────
-# 10. KÄLLÖVERSIKT I SIDFOTEN
-# ──────────────────────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════
+# KAPITEL 13 — KÄLLOR
+# ══════════════════════════════════════════════════════════════════════
 
 st.markdown("---")
 st.header("Källor och fördjupning")
