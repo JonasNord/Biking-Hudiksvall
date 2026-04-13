@@ -83,7 +83,7 @@ st.set_page_config(
     layout="wide",
 )
 
-st.title("🚲 Cykelinfrastruktur - Hudiksvalls kommun")
+st.title("Cykelinfrastruktur - Hudiksvalls kommun")
 st.markdown(
     "**Varför det kostar mer att *inte* investera i cykelvägar.**  \n"
     "Använd reglagen i sidopanelen för att utforska olika scenarier."
