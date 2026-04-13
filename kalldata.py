@@ -359,10 +359,10 @@ KALLOR = {
         "rubrik": "Klimat och CO₂",
         "kallor": [
             {
-                "namn": "Naturvårdsverket - Utsläpp från transporter",
-                "url": "https://www.naturvardsverket.se/amnesomraden/klimatomstallningen/omraden/transporter/",
-                "beskrivning": "Genomsnittlig personbil i Sverige: ca 120 g CO₂/km (blandad körning).",
-                "datapunkt": "120 g CO₂/km genomsnitt svensk personbilsflotta",
+                "namn": "Transportstyrelsen - Utsläpp från transporter",
+                "url": "https://www.transportstyrelsen.se/sv/om-oss/statistik-och-analys/statistik-inom-vagtrafik/statistik-over-koldioxidutslapp/",
+                "beskrivning": "Genomsnittlig fossil personbil i Sverige: ca 120 g CO₂/km (blandad körning).",
+                "datapunkt": "120 g CO₂/km genomsnitt fossil svensk personbilsflotta",
                 "kvalitet": "schablon",
             },
         ],
