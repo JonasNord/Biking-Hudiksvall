@@ -77,20 +77,33 @@ CYKELKM_PER_ÅR = TYPISK_ENKELRESA_KM * 2 * CYKELDAGAR_PER_ÅR  # 1 800 km/år
 # HÄLSO- OCH SAMHÄLLSVINSTER
 # ──────────────────────────────────────────────────────────────────────
 
-ASEK_HÄLSOVÄRDE_PER_KM = 4.50      # SEK/cyklad km (Trafikverket ASEK 7.0)
+ASEK_HÄLSOVÄRDE_PER_KM = 4.50      # SEK/cyklad km (Trafikverket ASEK 8.0)
 HÄLSOVINST_PER_CYKLIST_ÅR = int(ASEK_HÄLSOVÄRDE_PER_KM * CYKELKM_PER_ÅR)
                                     # = 4,50 x 1 800 = 8 100 SEK/år
                                     # Inom schablonintervallet 5 000–10 000
 
 # ──────────────────────────────────────────────────────────────────────
-# TRAFIKSÄKERHET - Samhällskostnad per olycka (ASEK 7.0)
+# TRAFIKSÄKERHET - Samhällskostnad per olycka (ASEK 8.0)
 # ──────────────────────────────────────────────────────────────────────
-# Källa: Trafikverket ASEK 7.0 - Samhällsekonomiska kalkylvärden
+# Källa: Trafikverket ASEK 8.0 (2 april 2024), Tabell 11.1
+#        Kalkylbilaga, flik "11. Trafiksäkerhet"
 # STRADA (Swedish Traffic Accident Data Acquisition) via Transportstyrelsen
+#
+# "Allvarligt skadad" (AS) = skada som ger minst 1 % permanent medicinsk
+# invaliditet (RPMI ≥ 1 %). Definieras i ASEK 8.0 avsnitt 11.1.
+# Delas vidare i:
+#   - Mycket allvarligt skadad (MAS): RPMI ≥ 10 %  → 19,0 MSEK
+#   - Lägre grad av allvarlig skada (LAS): 1–10 %  → 12,5 MSEK
+# "Ej allvarligt skadad" (EAS) = RPMI < 1 %        →  0,74 MSEK
+# Dödsfall                                          → 53,0 MSEK
+#
+# Läs mer: ASEK 8.0, avsnitt 11.1 "Kategorisering av hälsoeffekt vid
+# trafikolycka" (sid 141) och Tabell 11.1 (sid 143).
 
-ASEK_ALLVARLIGT_SKADAD_MSEK = 4.7   # MSEK per allvarligt skadad person
-                                     # (livskvalitetsförlust + sjukvård + prod.bortfall)
-ASEK_LINDRIGT_SKADAD_MSEK = 0.3     # MSEK per lindrigt skadad
+ASEK_ALLVARLIGT_SKADAD_MSEK = 14.7   # MSEK per allvarligt skadad (AS)
+                                      # Tabell 11.1: riskv. 13 638 + mat. 1 060 tkr
+                                      # (basår 2019)
+ASEK_LINDRIGT_SKADAD_MSEK = 0.74     # MSEK per ej allvarligt skadad (EAS)
 GC_OLYCKOR_ALLVARLIGA_PER_ÅR = 2    # Allvarligt skadade oskyddade trafikanter
                                      # i Hudiksvall, 5-årssnitt (STRADA).
                                      # Konservativt: STRADA underrapporterar
@@ -340,17 +353,20 @@ KALLOR = {
         "rubrik": "Trafiksäkerhet",
         "kallor": [
             {
-                "namn": "Transportstyrelsen - STRADA",
-                "url": "https://www.transportstyrelsen.se/sv/vagtrafik/statistik/olycksstatistik/sokverktyg-strada/",
-                "beskrivning": "Officiell olycksstatistik. Sök per kommun, trafikanttyp och skadegrad.",
+                "namn": "Transportstyrelsen - Olycksstatistik (STRADA)",
+                "url": "https://www.transportstyrelsen.se/sv/om-oss/statistik-och-analys/statistik-inom-vagtrafik/olycksstatistik/statistik-over-vagtrafikolyckor/",
+                "beskrivning": "Officiell olycksstatistik med nedladdningsbara dataset per region. "
+                               "STRADA-databasen samlar polis- och sjukvårdsrapporter.",
                 "datapunkt": "Skadeolyckor med cyklister/gående i Hudiksvall",
                 "kvalitet": "lokal",
             },
             {
-                "namn": "Trafikverket ASEK 7.0 - Olycksdata",
-                "url": "https://bransch.trafikverket.se/for-dig-i-branschen/Planera-och-utreda/samhallsekonomisk-analys-och-trafikanalys/samhallsekonomiska-analysmetoder-inom-transportomradet---asek/",
-                "beskrivning": "Samhällsekonomisk kostnad per olycka efter skadegrad.",
-                "datapunkt": "Allvarligt skadad: 4,7 MSEK, lindrigt skadad: 0,3 MSEK",
+                "namn": "Trafikverket ASEK 8.0 - Olycksvärdering (Tabell 11.1)",
+                "url": "https://bransch.trafikverket.se/contentassets/0e5777a6301e4134a6e8365fc20c0e0e/asek-8.0-2-april-2024.pdf",
+                "beskrivning": "Samhällsekonomisk kostnad per olycka efter skadegrad. "
+                               "Se avsnitt 11.1 (sid 141) för definition av skadekategorier "
+                               "och Tabell 11.1 (sid 143) för kalkylvärden.",
+                "datapunkt": "Allvarligt skadad (AS): 14,7 MSEK, ej allvarligt skadad (EAS): 0,74 MSEK",
                 "kvalitet": "schablon",
             },
         ],
@@ -467,8 +483,8 @@ AVVÄGNINGAR = [
         "spann": "25–50 MSEK/km för standard 2-fältsväg",
         "val": "Vi har valt det LÄGSTA i spannet. En riksväg kostar 40–70 MSEK/km. "
                "Att vi räknar lågt gör jämförelsen konservativ till cykelvägens nackdel.",
-        "källa": "Trafikverket - Samhällsekonomiska kalkylvärden",
-        "källa_url": "https://bransch.trafikverket.se/for-dig-i-branschen/Planera-och-utreda/samhallsekonomisk-analys-och-trafikanalys/samhallsekonomiska-analysmetoder-inom-transportomradet---asek/",
+        "källa": "Trafikverket ASEK 8.0",
+        "källa_url": "https://bransch.trafikverket.se/contentassets/0e5777a6301e4134a6e8365fc20c0e0e/asek-8.0-2-april-2024.pdf",
         "riktning": "konservativ",
     },
     {
@@ -487,7 +503,7 @@ AVVÄGNINGAR = [
                "15 min x 18 km/h) x 2 (tur/retur) x 200 dagar/år = 1 800 km/år. "
                "Multiplicerat med Trafikverkets ASEK-värde 4,50 SEK/km = 8 100 kr/år. "
                "200 cykeldagar är konservativt (exkluderar vinter).",
-        "källa": "Trafikverket ASEK 7.0 + Newsworthy/Tyréns cykelavstånd",
+        "källa": "Trafikverket ASEK 8.0 + Newsworthy/Tyréns cykelavstånd",
         "källa_url": "https://www.newsworthy.se/artikel/249947/h%C3%A4r-%C3%A4r-hudiksvallsomr%C3%A5det-d%C3%A4r-n%C3%A4stan-%C3%A5tta-av-tio-kan-cykla-till-jobbet",
         "riktning": "konservativ",
     },
@@ -554,9 +570,11 @@ AVVÄGNINGAR = [
         "spann": "1–5 rapporterade per år (STRADA); verkligt antal troligen 2–3x högre",
         "val": "Vi räknar med 2 allvarligt skadade oskyddade trafikanter per år - "
                "det lägre spannet. STRADA underrapporterar cykelolyckor med ca 60 %. "
-               "Med verklig olycksbild vore siffran högre.",
-        "källa": "Transportstyrelsen - STRADA",
-        "källa_url": "https://www.transportstyrelsen.se/sv/vagtrafik/statistik/olycksstatistik/sokverktyg-strada/",
+               "Med verklig olycksbild vore siffran högre. "
+               "Cykelsingelolyckor (utan motorfordon) underrapporteras med faktor 10 "
+               "(ASEK 8.0 Tabell 11.2).",
+        "källa": "Transportstyrelsen - STRADA / ASEK 8.0 Tabell 11.2",
+        "källa_url": "https://www.transportstyrelsen.se/sv/om-oss/statistik-och-analys/statistik-inom-vagtrafik/olycksstatistik/statistik-over-vagtrafikolyckor/",
         "riktning": "konservativ",
     },
     {
